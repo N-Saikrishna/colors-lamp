@@ -92,4 +92,4 @@ http://157.245.140.238
 
 - **MD5 isn't secure password hashing.** It's fast and unsalted, so it's easy to brute-force. Client-side hashing is also disabled right now, so passwords are sent and stored as plain text. A real app would hash on the server with `password_hash()`.
 - **There's no HTTPS.** All traffic, including login credentials, is sent unencrypted.
-- **It's reachable only by IP address.** The app lives at a bare IP until a domain is set up. Without a domain it also can't get a TLS certificate (for example from Let's Encrypt).
+- **It's reachable only by IP address.** The app lives at a bare IP until a domain is set up.
