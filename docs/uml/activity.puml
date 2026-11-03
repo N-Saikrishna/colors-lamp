@@ -1,0 +1,61 @@
+@startuml activity
+title Colors Web Application - Activity Diagram
+
+|User|
+start
+:Enter login and password
+on index.html;
+
+|Web Page (code.js)|
+:doLogin() sends POST
+to Login.php;
+
+|Server (PHP + MySQL)|
+:Look up user in Users table;
+
+|Web Page (code.js)|
+if (Valid login?) then (no)
+  :Show "User/Password
+  combination incorrect";
+  stop
+else (yes)
+  :Save cookie (20 min)
+  and open color.html;
+endif
+
+repeat
+  |User|
+  :Enter a color name;
+  if (Action?) then (Add Color)
+    |Web Page (code.js)|
+    :addColor() sends POST
+    to AddColor.php;
+    |Server (PHP + MySQL)|
+    :Insert color into Colors table;
+    |Web Page (code.js)|
+    :Show "Color has been added";
+  else (Search Colors)
+    |Web Page (code.js)|
+    :searchColor() sends POST
+    to SearchColors.php;
+    |Server (PHP + MySQL)|
+    :Find the user's colors
+    whose name contains the text;
+    |Web Page (code.js)|
+    :Show matching colors;
+    note right
+      If nothing matches, the API returns
+      no "results" list, so the color list
+      is not updated.
+    end note
+  endif
+  |User|
+repeat while (Log out?) is (no)
+-> yes;
+
+|Web Page (code.js)|
+:doLogout() clears cookie
+and returns to index.html;
+stop
+
+@enduml
