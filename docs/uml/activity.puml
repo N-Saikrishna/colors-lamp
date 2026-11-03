@@ -1,0 +1,107 @@
+@startuml activity
+title Colors Web Application - Activity Diagram
+
+|User|
+start
+:Open index.html;
+:Enter username and password;
+:Click "Do It";
+
+|Browser (code.js)|
+:doLogin(): build JSON {login, password}
+(MD5 hashing is commented out, so the
+password is sent as plain text);
+:POST /LAMPAPI/Login.php;
+
+|PHP API|
+:Login.php: SELECT ID, firstName, lastName
+FROM Users WHERE Login = ? AND Password = ?;
+
+|MySQL|
+:Return matching row (if any);
+
+|PHP API|
+if (Row found?) then (yes)
+  :Return {id, firstName, lastName, error: ""};
+else (no)
+  :Return {id: 0, error: "No Records Found"};
+endif
+
+|Browser (code.js)|
+if (id < 1?) then (yes)
+  :Show "User/Password combination incorrect";
+  |User|
+  stop
+else (no)
+  |Browser (code.js)|
+  :saveCookie(): store firstName, lastName,
+  userId (expires in 20 minutes);
+  :Redirect to color.html;
+endif
+
+:readCookie() on page load;
+if (userId found in cookie?) then (no)
+  :Redirect to index.html;
+  |User|
+  stop
+else (yes)
+endif
+
+|User|
+repeat
+  :Choose an action;
+  if (Action?) then (Add Color)
+    :Enter color name, click "Add Color";
+    |Browser (code.js)|
+    :addColor(): POST {color, userId}
+    to /LAMPAPI/AddColor.php;
+    |PHP API|
+    :AddColor.php: INSERT INTO Colors (UserId, Name);
+    |MySQL|
+    :Insert row;
+    |PHP API|
+    :Return {error: ""}
+    (result of the insert is not checked);
+    |Browser (code.js)|
+    :Show "Color has been added";
+  elseif () then (Search Colors)
+    |User|
+    :Enter search text, click "Search Color";
+    |Browser (code.js)|
+    :searchColor(): POST {search, userId}
+    to /LAMPAPI/SearchColors.php;
+    |PHP API|
+    :SearchColors.php: SELECT Name FROM Colors
+    WHERE Name LIKE %search% AND UserID = ?;
+    |MySQL|
+    :Return matching rows;
+    |PHP API|
+    if (Any rows?) then (yes)
+      :Return {results: [...], error: ""};
+      |Browser (code.js)|
+      :Show "Color(s) has been retrieved";
+      :Display colors in #colorList;
+    else (no)
+      |PHP API|
+      :Return {error: "No Records Found"}
+      (no "results" field);
+      |Browser (code.js)|
+      :Show "Color(s) has been retrieved";
+      :Reading results.length throws an error,
+      so the color list is not updated;
+    endif
+  else (Log Out)
+    |User|
+    :Click "Log Out";
+    |Browser (code.js)|
+    :doLogout(): clear variables and expire cookie;
+    :Redirect to index.html;
+    |User|
+    stop
+  endif
+  |User|
+repeat while (Stay on color.html?) is (yes)
+-> no (close page);
+stop
+
+@enduml
