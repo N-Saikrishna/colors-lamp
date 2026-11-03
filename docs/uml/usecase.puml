@@ -1,0 +1,48 @@
+@startuml usecase
+title Colors Web Application - Use Case Diagram
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "User" as User
+actor "MySQL Database" as DB <<system>>
+
+note top of User
+  Accounts are created manually in MySQL.
+  The app has no registration page.
+end note
+
+rectangle "Colors Web Application" {
+  usecase "Log In" as UC_Login
+  usecase "Add Color" as UC_Add
+  usecase "Search Colors" as UC_Search
+  usecase "Log Out" as UC_Logout
+  usecase "Validate Session\n(read userId cookie)" as UC_Session
+}
+
+User --> UC_Login
+User --> UC_Add
+User --> UC_Search
+User --> UC_Logout
+
+UC_Add ..> UC_Session : <<include>>
+UC_Search ..> UC_Session : <<include>>
+
+UC_Login --> DB
+UC_Add --> DB
+UC_Search --> DB
+
+note right of UC_Session
+  color.html calls readCookie() on load.
+  If no userId is found, the user is
+  redirected to index.html.
+end note
+
+note right of UC_Search
+  Returns only colors whose Name
+  contains the search text and whose
+  UserID matches the logged-in user.
+end note
+
+@enduml
