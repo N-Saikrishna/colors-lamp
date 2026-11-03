@@ -1,0 +1,130 @@
+@startuml class
+title Colors Web Application - Class Diagram
+
+skinparam classAttributeIconSize 0
+
+note as N
+  The application is procedural (plain JavaScript and PHP
+  scripts, no class definitions). Each file is modeled as a
+  stereotyped class: its globals are attributes and its
+  functions are operations. Database tables are entities.
+end note
+
+package "Frontend (public/)" {
+  class "index.html" as IndexPage <<page>> {
+    loginName : input
+    loginPassword : input
+    loginButton : button
+    loginResult : span
+  }
+
+  class "color.html" as ColorPage <<page>> {
+    userName : span
+    logoutButton : button
+    searchText : input
+    searchColorButton : button
+    colorSearchResult : span
+    colorList : p
+    colorText : input
+    addColorButton : button
+    colorAddResult : span
+  }
+
+  class "code.js" as CodeJS <<script>> {
+    + urlBase : String = "http://157.245.140.238/LAMPAPI"
+    + extension : String = "php"
+    + userId : int
+    + firstName : String
+    + lastName : String
+    --
+    + doLogin() : void
+    + saveCookie() : void
+    + readCookie() : void
+    + doLogout() : void
+    + addColor() : void
+    + searchColor() : void
+  }
+
+  class "md5.js" as MD5JS <<script>> {
+    + md5(string) : String
+  }
+}
+
+package "API (api/ deployed as /LAMPAPI)" {
+  class "Login.php" as LoginAPI <<endpoint>> {
+    request: {login, password}
+    response: {id, firstName, lastName, error}
+    --
+    getRequestInfo() : array
+    sendResultInfoAsJson(obj) : void
+    returnWithError(err) : void
+    returnWithInfo(firstName, lastName, id) : void
+  }
+
+  class "AddColor.php" as AddColorAPI <<endpoint>> {
+    request: {color, userId}
+    response: {error}
+    --
+    getRequestInfo() : array
+    sendResultInfoAsJson(obj) : void
+    returnWithError(err) : void
+  }
+
+  class "SearchColors.php" as SearchColorsAPI <<endpoint>> {
+    request: {search, userId}
+    response: {results, error}
+    --
+    getRequestInfo() : array
+    sendResultInfoAsJson(obj) : void
+    returnWithError(err) : void
+    returnWithInfo(searchResults) : void
+  }
+
+  class "config.php" as Config <<config>> {
+    DB_HOST
+    DB_USER
+    DB_PASS
+    DB_NAME
+  }
+}
+
+package "MySQL (COP4331)" {
+  class Users <<table>> {
+    + ID : INT <<PK>>
+    {field} + firstName : VARCHAR(50)
+    {field} + lastName : VARCHAR(50)
+    {field} + Login : VARCHAR(50)
+    {field} + Password : VARCHAR(50)
+  }
+
+  class Colors <<table>> {
+    + ID : INT <<PK>>
+    {field} + Name : VARCHAR(50)
+    + UserID : INT
+  }
+}
+
+IndexPage ..> CodeJS : loads
+IndexPage ..> MD5JS : loads
+ColorPage ..> CodeJS : loads
+CodeJS ..> MD5JS : md5() call\ncommented out
+
+CodeJS ..> LoginAPI : POST (XHR, JSON)
+CodeJS ..> AddColorAPI : POST (XHR, JSON)
+CodeJS ..> SearchColorsAPI : POST (XHR, JSON)
+
+LoginAPI ..> Config : require_once
+AddColorAPI ..> Config : require_once
+SearchColorsAPI ..> Config : require_once
+
+LoginAPI ..> Users : SELECT
+AddColorAPI ..> Colors : INSERT
+SearchColorsAPI ..> Colors : SELECT ... LIKE
+
+Users "1" -- "0..*" Colors : owns >
+note on link
+  Logical link through Colors.UserID.
+  No foreign key constraint is defined.
+end note
+
+@enduml
