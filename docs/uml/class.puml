@@ -91,8 +91,8 @@ package "API (api/ deployed as /LAMPAPI)" {
 package "MySQL (COP4331)" {
   class Users <<table>> {
     + ID : INT <<PK>>
-    {field} + firstName : VARCHAR(50)
-    {field} + lastName : VARCHAR(50)
+    {field} + FirstName : VARCHAR(50)
+    {field} + LastName : VARCHAR(50)
     {field} + Login : VARCHAR(50)
     {field} + Password : VARCHAR(50)
   }
