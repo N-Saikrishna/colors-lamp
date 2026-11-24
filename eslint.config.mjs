@@ -23,4 +23,15 @@ export default [
     languageOptions: { globals: { module: "readonly" } },
     linterOptions: { reportUnusedDisableDirectives: "off" },
   },
+  {
+    files: ["tests/**/*.js"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: { ...globals.node, ...globals.jest },
+    },
+  },
+  {
+    files: ["tests/unit/*.js"],
+    languageOptions: { globals: globals.browser },
+  },
 ];
