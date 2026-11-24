@@ -84,6 +84,15 @@ Edit `api/config.php` and set `DB_HOST`, `DB_USER`, `DB_PASS`, and `DB_NAME` to 
 
 If you deploy to a different address, update `urlBase` at the top of `public/js/code.js`.
 
+## Linting
+
+GitHub Actions lints the HTML, CSS, and JavaScript on every push and pull request (see `.github/workflows/ci.yml`). Node.js is only used for these tools, not to run the app. To run the same checks locally:
+
+```bash
+npm ci
+npm run lint
+```
+
 ## Access
 
 http://157.245.140.238
