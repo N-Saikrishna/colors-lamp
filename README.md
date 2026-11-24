@@ -84,14 +84,23 @@ Edit `api/config.php` and set `DB_HOST`, `DB_USER`, `DB_PASS`, and `DB_NAME` to 
 
 If you deploy to a different address, update `urlBase` at the top of `public/js/code.js`.
 
-## Linting
+## Linting and tests
 
-GitHub Actions lints the HTML, CSS, and JavaScript on every push and pull request (see `.github/workflows/ci.yml`). Node.js is only used for these tools, not to run the app. To run the same checks locally:
+GitHub Actions runs these on every push and pull request (see `.github/workflows/ci.yml`):
+
+- **Lint:** checks the HTML, CSS, and JavaScript.
+- **Unit tests** (`tests/unit`): check the frontend logic in `public/js/code.js` with Jest.
+- **Integration tests** (`tests/integration`): send requests to the PHP API, backed by a MySQL test database, and check the JSON it returns.
+
+Node.js is only used for these tools, not to run the app. To run the lint checks and unit tests locally:
 
 ```bash
 npm ci
 npm run lint
+npm run test:unit
 ```
+
+The integration tests need PHP and MySQL. They use `http://127.0.0.1:8080` unless `API_URL` is set. They add colors to the database, so don't point them at the live server.
 
 ## Access
 

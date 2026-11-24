@@ -127,7 +127,8 @@ function addColor()
 		{
 			if (this.readyState == 4 && this.status == 200) 
 			{
-				document.getElementById("colorAddResult").innerHTML = "Color has been added";
+				let jsonObject = JSON.parse( xhr.responseText );
+				document.getElementById("colorAddResult").innerHTML = jsonObject.error || "Color has been added";
 			}
 		};
 		xhr.send(jsonPayload);
@@ -160,8 +161,16 @@ function searchColor()
 		{
 			if (this.readyState == 4 && this.status == 200) 
 			{
-				document.getElementById("colorSearchResult").innerHTML = "Color(s) has been retrieved";
 				let jsonObject = JSON.parse( xhr.responseText );
+
+				if( jsonObject.error )
+				{
+					document.getElementById("colorSearchResult").innerHTML = jsonObject.error;
+					document.getElementsByTagName("p")[0].innerHTML = "";
+					return;
+				}
+
+				document.getElementById("colorSearchResult").innerHTML = "Color(s) has been retrieved";
 				
 				for( let i=0; i<jsonObject.results.length; i++ )
 				{
