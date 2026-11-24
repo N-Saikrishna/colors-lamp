@@ -34,3 +34,62 @@ jobs:
       - name: Lint JavaScript
         if: ${{ !cancelled() }}
         run: npm run lint:js
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root_password
+          MYSQL_DATABASE: COP4331
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -u test_user -ptest_password"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mysqli
+
+      - name: Install testing tools
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Load the test database
+        if: ${{ !cancelled() }}
+        run: docker exec -i "${{ job.services.mysql.id }}" mysql -h 127.0.0.1 -u test_user -ptest_password COP4331 < tests/integration/setup.sql
+
+      - name: Start the PHP API
+        if: ${{ !cancelled() }}
+        run: |
+          cp tests/integration/config.php api/config.php
+          php -S 127.0.0.1:8080 -t api > php.log 2>&1 &
+          curl --silent --output /dev/null --retry 10 --retry-delay 1 --retry-connrefused http://127.0.0.1:8080/
+
+      - name: Run integration tests
+        if: ${{ !cancelled() }}
+        run: npm run test:integration
+
+      - name: Show PHP log
+        if: failure()
+        run: cat php.log
